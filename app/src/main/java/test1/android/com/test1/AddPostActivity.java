@@ -1,6 +1,7 @@
 package test1.android.com.test1;
 
 import android.content.Intent;
+import android.renderscript.Sampler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -32,6 +33,7 @@ public class AddPostActivity extends AppCompatActivity {
     SharedPrefManager sharedPrefManager;
     ApiService mApiService;
     private View focusView;
+    public String post_id;
 
 //    @BindView(R.id.btnSubmitPost)
 //    Button btnSubmitPost;
@@ -39,6 +41,7 @@ public class AddPostActivity extends AppCompatActivity {
     EditText editTitle;
     @BindView(R.id.editContent)
     EditText editContent;
+    @BindView(R.id.postID) EditText postID;
 //    @BindView(R.id.updPost) MenuItem savePost;
 //    @BindView(R.id.delPost) MenuItem delPost;
 
@@ -51,15 +54,21 @@ public class AddPostActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         mApiService = ApiClient.getClient().create(ApiService.class);
         sharedPrefManager = new SharedPrefManager(this);  //Initialize SharedPrefManager
-//        btnSubmitPost.setVisibility(View.GONE);
 
+        Bundle extras = getIntent().getExtras(); //Get value from Prev intent
 
-//        btnSubmitPost.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                goSubmmit();
-//            }
-//        });
+        if (extras != null) { // check has Extras value
+//            final String post_id = extras.getString("id");
+            post_id = extras.getString("id");
+            String postTitle = extras.getString("post_title");
+            String postContent = extras.getString("post_content");
+            if (post_id != null && post_id.trim().length() > 0) {
+                editTitle.setFocusable(false);
+                postID.setText(post_id);
+                editTitle.setText(postTitle);
+                editContent.setText(postContent);
+            }
+        }
     }
 
     @Override
@@ -77,9 +86,43 @@ public class AddPostActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.updPost:
-                goSubmmit();
+                if (post_id != null && post_id.trim().length() > 0) {
+                    goUpdate();
+                } else {
+                    goSubmmit();
+                }
+
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void goUpdate() {
+        if (!performValidation()) {
+            return;
+        } else {
+            String mToken = "Bearer " + sharedPrefManager.getSPToken();
+            mApiService.updatePost(mToken, postID.getText().toString(), editTitle.getText().toString(), editContent.getText().toString())
+                    .enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                            if (response.isSuccessful()) {
+                                Log.i("Debug", "onResponse: Update post Success");
+                                finish();
+                            } else {
+                                Log.i("debug", "onResponse: Update post failed");
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<ResponseBody> call, Throwable t) {
+                            Log.e("debug", "onFailure: ERROR > " + t.getMessage());
+                            Toast.makeText(AddPostActivity.this, "Please check nternet connection", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+        }
     }
 
     private void goSubmmit() {

@@ -18,6 +18,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -55,12 +56,6 @@ public class ShowPostActivity extends AppCompatActivity {
 
         showPost = this;
         refresh();
-//        addPost.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                startActivity(new Intent(ShowPostActivity.this, AddPostActivity.class));
-//            }
-//        });
     }
 
     @Override
@@ -110,5 +105,29 @@ public class ShowPostActivity extends AppCompatActivity {
                 Log.e("Retrofit Get", t.toString());
             }
         });
+    }
+
+    public void goDelete(String id) {
+        String mToken = "Bearer " + sharedPrefManager.getSPToken();
+        mApiInterface.deletePost(mToken, id)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+
+                        if (response.isSuccessful()) {
+                            Log.i("Debug", "onResponse: Delete post Success");
+//                            finish();
+                            refresh();
+                        } else {
+                            Log.i("debug", "onResponse: Delete post failed");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Log.e("debug", "onFailure: ERROR > " + t.getMessage());
+                        Toast.makeText(ShowPostActivity.this, "Please check nternet connection", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

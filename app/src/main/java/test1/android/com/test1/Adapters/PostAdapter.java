@@ -3,6 +3,7 @@ package test1.android.com.test1.Adapters;
 
 import android.content.Context;
 
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -12,14 +13,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
 
+import test1.android.com.test1.AddPostActivity;
 import test1.android.com.test1.Models.Post;
 import test1.android.com.test1.R;
+import test1.android.com.test1.ShowPostActivity;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> {
 
@@ -70,6 +74,30 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> 
                 return true;
             }
         });
+
+        holder.btnEditPost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+//                view.getContext().startActivity(new Intent(view.getContext(), AddPostActivity.class));
+                Intent intent = new Intent(view.getContext(), AddPostActivity.class);
+//                intent.putExtra("id", String.valueOf(users.get(pos).getId()));
+                intent.putExtra("id", postList.get(position).getId());
+                intent.putExtra("post_title", postList.get(position).getPostTitle());
+                intent.putExtra("post_content", postList.get(position).getPostContent());
+                view.getContext().startActivity(intent);
+            }
+        });
+
+        holder.btnDelPost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //context.startActivity(new Intent(context, AddPostActivity.class));
+                Log.d(TAG, "onBindViewHolder -Del: "+postList.get(position).getPostTitle());
+//                ApiClient.getClient().create(ApiService.class);
+                ShowPostActivity.showPost.goDelete(postList.get(position).getId());
+
+            }
+        });
     }
 
     @Override
@@ -94,11 +122,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> 
     public class MyViewHolder extends RecyclerView.ViewHolder  {
 //        implements View.OnCreateContextMenuListener
         public TextView mTextViewId, mTextViewName;
+        public  ImageButton btnEditPost, btnDelPost;
 
         public MyViewHolder(View itemView) {
             super(itemView);
             mTextViewId = (TextView) itemView.findViewById(R.id.tvId);
             mTextViewName = (TextView) itemView.findViewById(R.id.tvName);
+            btnEditPost = (ImageButton) itemView.findViewById(R.id.btnEditPost);
+            btnDelPost = (ImageButton) itemView.findViewById(R.id.btnDelPost);
 //            itemView.setOnCreateContextMenuListener(this);
 //            itemView.setOnClickListener(this);
         }

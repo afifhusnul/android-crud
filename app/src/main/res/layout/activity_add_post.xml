@@ -7,6 +7,12 @@
     tools:context=".AddPostActivity">
 
     <EditText
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/postID"
+        android:visibility="gone"/>
+
+    <EditText
         android:id="@+id/editTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

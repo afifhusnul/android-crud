@@ -2,11 +2,13 @@ package test1.android.com.test1.Rest;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import test1.android.com.test1.Models.AccessToken;
 import test1.android.com.test1.Models.GetMasterStock;
@@ -52,9 +54,22 @@ public interface ApiService {
     Call<GetPost> getPostList(@Header("Authorization") String Token, @Path("userId") String userId);
 
     //Add post
-    @POST("post/add")
+    @POST("addpost/add")
     @FormUrlEncoded
     Call<ResponseBody> postAdd(@Header("Authorization") String Token,
                               @Field("post_title") String postTitle,
                               @Field("post_content") String postContent);
+
+    //Update post
+    @PUT("updatepost/{id}")
+    @FormUrlEncoded
+    Call<ResponseBody> updatePost(@Header("Authorization") String Token,
+                          @Path("id") String id, @Field("post_title") String postTitle,
+                          @Field("post_content") String postContent);
+
+    //Delete Post
+    @DELETE("deletepost/{id}")
+//    @FormUrlEncoded
+    Call<ResponseBody> deletePost(@Header("Authorization") String Token, @Path("id") String id);
+
 }
