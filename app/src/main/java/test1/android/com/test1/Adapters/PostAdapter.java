@@ -91,9 +91,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.MyViewHolder> 
         holder.btnDelPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //context.startActivity(new Intent(context, AddPostActivity.class));
-                Log.d(TAG, "onBindViewHolder -Del: "+postList.get(position).getPostTitle());
-//                ApiClient.getClient().create(ApiService.class);
+
+
                 ShowPostActivity.showPost.goDelete(postList.get(position).getId());
 
             }

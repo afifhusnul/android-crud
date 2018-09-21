@@ -1,8 +1,12 @@
 package test1.android.com.test1;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
@@ -19,6 +23,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,6 +54,8 @@ public class LoginActivity extends AppCompatActivity {
     CheckBox showPassword;
     @BindView(R.id.newUser)
     TextView newUser;
+
+    private ScanTimeOut mScanTimeOut = null;
 
     //    Call<AccessToken> call;
 //    Context mContext;
@@ -100,6 +109,8 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                         if (response.isSuccessful()) {
+                            mScanTimeOut = new ScanTimeOut(15000 / 1000);
+                            mScanTimeOut.startTimer();
                             try {
                                 JSONObject jsonRESULTS = new JSONObject(response.body().string());
                                 String tokenType = jsonRESULTS.getString("token_type");
@@ -134,5 +145,122 @@ public class LoginActivity extends AppCompatActivity {
                         loading.dismiss();
                     }
                 });
+    }
+
+    public class ScanTimeOut {
+        public long timeOut; //Application time out value (600L = 10 mins)
+        private Timer appTimer = null;
+        private Handler handler = null;
+
+        public ScanTimeOut(int timeOut) {
+            this.timeOut = timeOut;
+        }
+
+        public void startTimer() {
+
+            final CountDownLatch AuthorisationLatch = new CountDownLatch(
+                    (int) timeOut);
+            if (appTimer != null && handler != null) {
+                appTimer.cancel();
+                appTimer.purge();
+                appTimer = null;
+                handler = null;
+            }
+            handler = new Handler();
+            appTimer = new Timer();
+            appTimer.scheduleAtFixedRate(new TimerTask() {
+                public void run() {
+                    handler.post(new Runnable() {
+                        public void run() {
+                            AuthorisationLatch.countDown();
+                            Log.d("Scan Timer :", " ------ " + AuthorisationLatch.getCount());
+                            if (AuthorisationLatch.getCount() == 0) {
+                                showTimeOutDialog();
+                                if (appTimer != null && handler != null) {
+                                    appTimer.cancel();
+                                    appTimer.purge();
+                                    handler = null;
+                                    appTimer = null;
+                                }
+                            }
+                        }
+                    });
+                }
+            }, 0, 1000);
+        }
+
+        public void stopTimer() {
+            if (appTimer != null && handler != null) {
+                appTimer.cancel();
+                appTimer.purge();
+                handler = null;
+                appTimer = null;
+            }
+        }
+    }
+
+    public void showTimeOutDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        MANUAL_INPUT_ENABLE = getIntent().getExtras().getBoolean("ManualIDEnabled",true);
+//
+//        if(SELECTED_OCR_TYPE!=null && (SELECTED_OCR_TYPE.equalsIgnoreCase("IMM13") ||
+//                SELECTED_OCR_TYPE.equalsIgnoreCase("MYKAS") ||
+//                SELECTED_OCR_TYPE.equalsIgnoreCase("IKAD") ||
+//                !MANUAL_INPUT_ENABLE)){
+//            builder.setMessage("Unable to scan simcard barcode")
+//                    .setCancelable(false)
+//                    .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int id) {
+//                            mScanTimeOut.startTimer();
+//                        }
+//                    })
+//                    .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            Intent intent = getIntent();
+//                            intent.putExtra(EXTRAS_SELECTED_OCR_TYPE, SELECTED_OCR_TYPE);
+//                            setResult(Activity.RESULT_CANCELED, intent);
+//                            finish();
+//                        }
+//                    });
+//        }else{
+//            builder.setMessage("Unable to scan simcard barcode")
+//                    .setCancelable(false)
+//                    .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int id) {
+//                            mScanTimeOut.startTimer();
+//                        }
+//                    })
+//                    .setNegativeButton("Manual Input", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            Intent intent = getIntent();
+//                            intent.putExtra(EXTRAS_SELECTED_OCR_TYPE, SELECTED_OCR_TYPE);
+//                            setResult(Activity.RESULT_CANCELED, intent);
+//                            finish();
+//                        }
+//                    });
+//        }
+
+        builder.setMessage("Unable to scan simcard barcode")
+                .setCancelable(false)
+                .setPositiveButton("Try Again", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mScanTimeOut.startTimer();
+                    }
+                })
+                .setNegativeButton("Manual Input", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = getIntent();
+                        setResult(Activity.RESULT_CANCELED, intent);
+                        finish();
+                    }
+                });
+
+        AlertDialog alert = builder.create();
+        alert.setTitle("Timeout");
+        alert.setCancelable(false);
+        alert.show();
     }
 }

@@ -13,7 +13,6 @@ public class ApiClient {
 
     public static final String BASE_URL_API = "http://192.168.6.135:8001/api/";
     private static Retrofit retrofit = null;
-    private static Retrofit retrofit2 = null;
 
     public static Retrofit getClient() {
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
